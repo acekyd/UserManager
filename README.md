@@ -106,4 +106,5 @@ password: janedoe
 
 
 ### Author
-**Olajide Bolaji 'Nuel** - Software Developer at Andela
+* **Olajide Bolaji 'Nuel** - Software Developer at Andela [Forked repo]
+* **Abati Adewale**
