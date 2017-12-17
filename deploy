@@ -1,0 +1,47 @@
+#!/bin/bash
+
+echo 'Setting up MongoDB...'
+echo ''
+docker build -f db/DockerFile --tag docker/mongodb .
+
+echo ''
+docker stop mongoDB
+docker rm mongoDB
+docker run --detach --publish 27017:27017 --name mongoDB docker/mongodb
+
+if [ ! -s ".env" ] ; then
+	echo 'Setting up ENV file...'
+	echo ''
+
+	cp .env-sample .env
+else
+	echo '@NV file already exists...'
+	echo ''
+fi
+
+echo 'Setting up Node Application...'
+echo ''
+docker build -f app/DockerFile --tag docker/usermanager .
+
+echo ''
+docker stop userManager
+docker rm userManager
+docker run --detach --link mongoDB:mongoDB --publish 3000:3000 --name userManager docker/usermanager
+
+if [ -x /usr/bin/curl ] ; then
+	echo -n "Do you want to seed the database? (y/n)? "
+	read answer
+	if echo "$answer" | grep -iq "^y" ;then
+		echo '@Seeding...'
+		echo ''
+		curl -X POST http://localhost:3000/users -d "name=John Doe&email=john.doe@gmail.com&password=johndoe"
+		curl -X POST http://localhost:3000/users -d "name=Jane Doe&email=jane.doe@gmail.com&password=janedoe"
+	else
+		echo '@Seeding skipped.'
+	fi
+
+	open http://localhost:3000/users
+fi
+
+echo 'Done ...'
+exit 0;
